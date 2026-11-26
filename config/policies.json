@@ -1,3 +1,68 @@
 {
-  "policies": []
+  "policies": [
+    {
+      "name": "mcp-oauth",
+      "policyType": "mcp-auth0-oauth-inbound",
+      "handler": {
+        "export": "McpAuth0OAuthInboundPolicy",
+        "module": "$import(@zuplo/runtime/mcp-gateway)",
+        "options": {
+          "auth0Domain": "dev-l3ayzqncrfw3ta50.us.auth0.com",
+          "clientId": "zUuxTwd4YEoftmhED9ZAeRsopj5dTDSH",
+          "clientSecret": "$env(AUTH0_CLIENT_SECRET)"
+        }
+      }
+    },
+    {
+      "name": "internal-only",
+      "policyType": "internal-only-inbound",
+      "handler": {
+        "export": "InternalOnlyInboundPolicy",
+        "module": "$import(@zuplo/runtime)",
+        "options": {
+          "status": 404
+        }
+      }
+    },
+    {
+      "name": "inherit-gateway-user",
+      "policyType": "custom-code-inbound",
+      "handler": {
+        "export": "default",
+        "module": "$import(./modules/inherit-gateway-user)"
+      }
+    },
+    {
+      "name": "mcp-token-exchange-stripe",
+      "policyType": "mcp-token-exchange-inbound",
+      "handler": {
+        "export": "McpTokenExchangeInboundPolicy",
+        "module": "$import(@zuplo/runtime/mcp-gateway)",
+        "options": {
+          "id": "stripe",
+          "displayName": "Stripe",
+          "authMode": "user-oauth",
+          "clientRegistration": {
+            "mode": "auto"
+          }
+        }
+      }
+    },
+    {
+      "name": "mcp-token-exchange-linear",
+      "policyType": "mcp-token-exchange-inbound",
+      "handler": {
+        "export": "McpTokenExchangeInboundPolicy",
+        "module": "$import(@zuplo/runtime/mcp-gateway)",
+        "options": {
+          "id": "linear",
+          "displayName": "Linear",
+          "authMode": "user-oauth",
+          "clientRegistration": {
+            "mode": "auto"
+          }
+        }
+      }
+    }
+  ]
 }

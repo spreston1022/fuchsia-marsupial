@@ -2,30 +2,85 @@
   "openapi": "3.1.0",
   "info": {
     "version": "1.0.0",
-    "title": "My Zuplo API"
+    "title": "MCP Gateway"
   },
   "paths": {
-    "/path-1": {
-      "x-zuplo-path": {
-        "pathMode": "open-api"
-      },
-      "get": {
-        "summary": "New REST Operation",
-        "description": "",
+    "/mcp": {
+      "post,get,delete": {
+        "operationId": "mcp-aggregate",
+        "summary": "Aggregated MCP endpoint",
+        "description": "Single MCP endpoint that combines the tools of every upstream MCP route below.",
         "x-zuplo-route": {
           "corsPolicy": "none",
           "handler": {
-            "export": "urlForwardHandler",
-            "module": "$import(@zuplo/runtime)",
+            "export": "default",
+            "module": "$import(./modules/mcp-aggregator)",
             "options": {
-              "baseUrl": "https://echo.zuplo.io"
+              "serverName": "single-mcp",
+              "upstreams": [
+                {
+                  "name": "stripe",
+                  "route": "/mcp/stripe"
+                },
+                {
+                  "name": "linear",
+                  "route": "/mcp/linear"
+                }
+              ]
             }
           },
           "policies": {
-            "inbound": []
+            "inbound": [
+              "mcp-oauth"
+            ]
           }
-        },
-        "operationId": "rest-bc4f550b"
+        }
+      }
+    },
+    "/mcp/stripe": {
+      "get,post,delete": {
+        "operationId": "mcp-stripe",
+        "summary": "Stripe MCP proxy",
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "export": "McpProxyHandler",
+            "module": "$import(@zuplo/runtime/mcp-gateway)",
+            "options": {
+              "rewritePattern": "https://mcp.stripe.com"
+            }
+          },
+          "policies": {
+            "inbound": [
+              "internal-only",
+              "inherit-gateway-user",
+              "mcp-token-exchange-stripe"
+            ]
+          }
+        }
+      }
+    },
+    "/mcp/linear": {
+      "get,post,delete": {
+        "operationId": "mcp-linear",
+        "summary": "Linear MCP proxy",
+        "x-zuplo-route": {
+          "corsPolicy": "none",
+          "handler": {
+            "export": "McpProxyHandler",
+            "module": "$import(@zuplo/runtime/mcp-gateway)",
+            "options": {
+              "rewritePattern": "https://mcp.linear.app/mcp"
+            }
+          },
+          "policies": {
+            "inbound": [
+              "internal-only",
+              "inherit-gateway-user",
+              "mcp-token-exchange-linear"
+            ]
+          }
+        }
       }
     }
   }
